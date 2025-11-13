@@ -1,34 +1,57 @@
-name: Flutter Build
+name: Flutter Build APK
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, master ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, master ]
+  workflow_dispatch:  # 允许手动触发
 
 jobs:
   build:
     runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@v3
+    - name: Checkout code
+      uses: actions/checkout@v4  # 升级到 v4
+      
+    - name: Setup Java
+      uses: actions/setup-java@v4  # 升级到 v4
+      with:
+        distribution: 'temurin'  # 使用 Eclipse Temurin JDK
+        java-version: '17'
     
     - name: Setup Flutter
       uses: subosito/flutter-action@v2
       with:
-        flutter-version: '3.35.7'  # 使用你的 Flutter 版本
-    
-    - name: Install dependencies
+        flutter-version: '3.35.7'
+        channel: 'stable'
+        
+    - name: Show Flutter version
+      run: flutter --version
+      
+    - name: Get dependencies
       run: flutter pub get
       
     - name: Run tests
       run: flutter test
       
     - name: Build APK
-      run: flutter build apk --release
+      run: flutter build apk --release --verbose
+      
+    - name: Build App Bundle
+      run: flutter build appbundle --release
       
     - name: Upload APK
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4  # 升级到 v4
       with:
-        name: release-apk
+        name: app-release
         path: build/app/outputs/flutter-apk/app-release.apk
+        retention-days: 30
+        
+    - name: Upload App Bundle
+      uses: actions/upload-artifact@v4  # 升级到 v4
+      with:
+        name: app-bundle
+        path: build/app/outputs/bundle/release/app-release.aab
+        retention-days: 30
